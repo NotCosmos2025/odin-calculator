@@ -1,104 +1,204 @@
+//button DOM
 const numberButtons = document.querySelectorAll(".number-btn");
 const operatorButtons = document.querySelectorAll(".operator-btn");
-const displaySteps = document.querySelector(".display-steps");
-const displayAnswer = document.querySelector(".display-answer")
+
+const acButton = document.querySelector(".ac-btn");
+const deleteButton = document.querySelector(".del-btn");
 const equalButton = document.querySelector(".equal-btn");
-const delButton = document.querySelector(".del-btn");
-const acButton = document.querySelector(".AC-btn");
+const decimalButton = document.querySelector(".decimal-btn");
 
+//Calc Screen DOM
+const displaySteps = document.querySelector(".display-steps");
+const displayAnswer = document.querySelector(".display-answer");
+
+//global variables
 let num1;
-let operator;
 let num2;
+let operator;
+handleNum2 = false;
 
-let checkOperators = "+-×/=";
+init();
 
-function initialiseCalculator()
+function init()
 {
-    handleEvents();
+    handleNumberDisplay();
+    handleOperatorButtons();
+    handleClearButton();
+    handleDecimalButton();
+    handleDeleteButton();
+    handleKeyboardInput();
 }
 
-initialiseCalculator();
-
-function handleEvents()
+function handleNumberDisplay()
 {
-    //make numbers show up on the display
     numberButtons.forEach((btn) =>
     {
-        btn.addEventListener("click", (e) =>
+        btn.addEventListener("click", () =>
         {
-            displaySteps.textContent += e.target.textContent;
+            displaySteps.textContent += btn.textContent;
+            if (num1 !== undefined)
+            {
+                handleNum2 = true;
+            }
         })
     })
+}
 
-    //handle operations and operator checking
-    operatorButtons.forEach((btn) => 
+function handleOperatorButtons()
+{
+    operatorButtons.forEach((btn) =>
     {
-        btn.addEventListener("click", (e) =>
+        btn.addEventListener("click", () =>
         {
-            handleOperations(e);
-        }) 
-    })
+            // insert operator to display
+            if (operator === undefined && displaySteps.textContent.length !== 0)
+            {
+                num1 = +displaySteps.textContent;
+                console.log(num1);
 
-    equalButton.addEventListener("click", () =>
-    {
-        handleEqual();
-    })
+                if (btn.textContent !== "=")
+                {
+                    operator = btn.textContent;
+                    displaySteps.textContent += ` ${operator} `;
+                }
+                
+                else
+                {
+                    displayAnswer.textContent = num1;
+                }
+            }
 
+            //change or handle duplicate operator
+            else if (handleNum2)
+            {
+
+                num2 = +displaySteps.textContent.slice(displaySteps.textContent.indexOf(operator) + 2)
+                console.log(num2);
+                num1 = operate(num1, num2, operator); 
+
+                if (btn.textContent === "=")
+                {
+                    console.log("is equal");
+                    operator = undefined;
+                    displaySteps.textContent = num1;
+                }
+
+                else
+                {
+                    operator = btn.textContent;
+                    displaySteps.textContent = num1 + ` ${operator} `;
+                }
+
+                displayAnswer.textContent = num1;
+                num2 = undefined;                    
+                handleNum2 = false;
+            }
+
+            //operator & num2 already exists so handle calculation
+            else if (displaySteps.textContent.length !== 0)
+            {
+                if (btn.textContent !== "=")
+                {
+                    operator = btn.textContent;
+                    displaySteps.textContent = `${displaySteps.textContent.slice(0, displaySteps.textContent.length - 3)} ${operator} `;
+                }
+            }
+
+        })
+    })
+}
+
+function handleClearButton()
+{
     acButton.addEventListener("click", () =>
     {
-        allClear();
+        num1 = undefined;
+        num2 = undefined;
+        operator = undefined;
+        displaySteps.textContent = "";
+        displayAnswer.textContent = "";
     })
-
 }
 
-function handleOperations(e)
+function handleDeleteButton()
 {
-    let hasDuplicate = false;
+    let checkOperators = "+-×/"
+    let deleteOp = false;
 
-    let numberOnePortion = displaySteps.textContent.slice(0, displaySteps.textContent.length - 2);
-    let clickedOperator = e.target.textContent;
-
-    if (displaySteps.textContent.length === 0) return;
-
-    //check if there is a duplicate operator at the end, and replace it instead of appending
-    for (op of checkOperators)
+    deleteButton.addEventListener("click", () =>
     {
-        if (displaySteps.textContent[displaySteps.textContent.length - 2] === op)
+        if (displaySteps.textContent.length >= 2)
         {
-            hasDuplicate = true;
-            num1 = Number.parseFloat(numberOnePortion);
-            displaySteps.textContent = numberOnePortion + ` ${clickedOperator} `
-        }
-    }
-
-    //append operator if there is no operator yet
-    if (!hasDuplicate && !displaySteps.textContent.includes("="))
-    {
-        if (operator === undefined)
-        {
-            num1 = Number.parseFloat(displaySteps.textContent);
-            console.log(num1);
-            displaySteps.textContent += ` ${clickedOperator} `;
+            for (op of checkOperators)
+            {
+                if (displaySteps.textContent[displaySteps.textContent.length - 2].includes(op))
+                {
+                    displaySteps.textContent = displaySteps.textContent.slice(0, displaySteps.textContent.length - 3);
+                    operator = undefined;
+                    handeNum2 = false;
+                    deleteOp = true;
+                }
+            }
         }
 
-        //operate and display answer if there is currently an operator
-        else
+        if (!deleteOp && displaySteps.textContent.length > 0)
         {
-            num1 = operate(num1, num2, operator);
-
-            operator = clickedOperator;
-            displaySteps.textContent = num1 + ` ${operator} `;
-            displayAnswer.textContent = num1;
-            num2 = undefined;
+            displaySteps.textContent = displaySteps.textContent.slice(0, displaySteps.textContent.length - 1)
         }
-   
-    }
+        
+        deleteOp = false;
 
-    operator = clickedOperator;
-    console.log(operator);
-
+    })
 }
 
+function handleDecimalButton()
+{
+    decimalButton.addEventListener("click", () =>
+    {
+        if (operator === undefined && !displaySteps.textContent.includes("."))
+        {
+            displaySteps.textContent += ".";
+        }
+
+        //decimal for num2
+        else if (!displaySteps.textContent.slice(displaySteps.textContent.indexOf(operator) + 1).includes("."))
+        {
+            displaySteps.textContent += ".";
+        }
+        
+    })
+}
+
+function handleKeyboardInput()
+{
+    window.addEventListener("keyup", (e) =>
+    {
+        if (e.key >= 0 && e.key <= 9)
+        {
+            displaySteps.textContent += e.key;
+            console.log(e.key);
+        }
+
+        if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/')
+        {
+            if (e.key === '*') displaySteps.textContent += ` × `; 
+
+            else
+            {
+                displaySteps.textContent += ` ${e.key} `;
+            }
+        }
+    })
+}
+
+function operate(num1, num2, operator)
+{
+    if (operator === "+") return add(num1, num2);
+    if (operator === "-") return subtract(num1, num2);
+
+    if (operator === "×") return +multiply(num1, num2).toFixed(5);
+    if (operator === "/") return +divide(num1, num2).toFixed(5);
+}
 
 function add(num1, num2)
 {
@@ -112,68 +212,16 @@ function subtract(num1, num2)
 
 function multiply(num1, num2)
 {
-    return num1*num2;
+    return num1 * num2;
 }
 
 function divide(num1, num2)
 {
-    return num1/num2;
-}
-
-function operate(num1, num2, operator)
-{
-
-    num2 = Number.parseFloat(displaySteps.textContent.slice(displaySteps.textContent.indexOf(operator) + 2));
-    if (operator === "+")
+    //account for division by 0
+    if (num2 === 0)
     {
-        return add(num1, num2);
+        alert("ERROR, DIVISION BY 0")
+        return num1;
     }
-    if (operator === "-")
-    {
-        return subtract(num1, num2);
-    }
-    if (operator === "×")
-    {
-        return multiply(num1, num2);
-    }
-    if (operator === "/")
-    {
-        return divide(num1, num2);
-    }
-
-}
-
-function deleteText()
-{
-     
-}
-
-function allClear()
-{
-    num1 = undefined;
-    operator = undefined;
-    num2 = undefined;
-
-}
-
-function handleEqual(e)
-{
-
-    let canEqual = true;
-    for (op of checkOperators)
-    {
-        if (displaySteps.textContent[displaySteps.textContent.length - 2] === op)
-        {
-                console.log("cannot equal yet");
-                canEqual = false;
-        }
-    }
-
-    if (canEqual && operator !== undefined)
-    {
-        displaySteps.textContent += ' = ';
-        num1 = operate(num1, num2, operator);
-        displayAnswer.textContent = num1;
-    }
-
+    return num1 / num2;
 }
