@@ -175,19 +175,35 @@ function handleKeyboardInput()
     {
         if (e.key >= 0 && e.key <= 9)
         {
-            displaySteps.textContent += e.key;
-            console.log(e.key);
-        }
-
-        if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/')
-        {
-            if (e.key === '*') displaySteps.textContent += ` × `; 
-
-            else
+            for (btn of numberButtons)
             {
-                displaySteps.textContent += ` ${e.key} `;
+                if (btn.textContent === e.key)
+                {
+                    btn.click();
+                }
             }
         }
+
+        if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/' || e.key === '=')
+        {
+            for (btn of operatorButtons)
+            {
+                if (e.key === '*' && btn.textContent === '×')
+                {
+                    btn.click();
+                }
+                else if (btn.textContent === e.key)
+                {
+                    btn.click();
+                }
+            }
+        }
+
+        if (e.key === "Backspace")
+        {
+            deleteButton.click();
+        }
+
     })
 }
 
